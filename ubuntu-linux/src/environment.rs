@@ -1,6 +1,6 @@
 use std::process::{Command, Stdio};
 use std::env;
-use std::error::Error;
+use anyhow::Result;
 
 pub struct Environment {
     pub home_var: String,
@@ -10,7 +10,7 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn load() -> Result<Environment, Box<dyn Error>> {
+    pub fn load() -> Result<Environment> {
         let home_var = env::var("HOME")?;
         let path_var = env::var("PATH")?;
         let python_version = "3.9.0".to_owned();

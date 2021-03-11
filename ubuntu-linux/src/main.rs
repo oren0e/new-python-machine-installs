@@ -5,11 +5,11 @@ use crate::utils::{git_clone, apt_install, apt_update,
                    write_to_file, pip_install, pipx_install};
 use crate::environment::Environment;
 use std::process::{Command, Stdio, exit};
-use std::error::Error;
 use std::env;
+use anyhow::Result;
 
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     apt_update().unwrap_or_else(|error| {
         println!("Update failed with error: {}", error);
         exit(1)
