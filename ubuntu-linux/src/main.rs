@@ -5,11 +5,11 @@ use crate::utils::{git_clone, apt_install, apt_update,
                    write_to_file, pip_install, pipx_install};
 use crate::environment::Environment;
 use std::process::{Command, Stdio, exit};
-use std::error::Error;
 use std::env;
+use anyhow::Result;
 
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     apt_update().unwrap_or_else(|error| {
         println!("Update failed with error: {}", error);
         exit(1)
@@ -19,7 +19,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         exit(1)
     });
 
-    let env_vars: Environment = Environment::new();
+    let env_vars: Environment = Environment::load().unwrap_or_else(|error| {
+        println!("Failed getting environment variable with error: {}", error);
+        exit(1)
+    });
 
     apt_install(vec!["zsh", "curl", "wget", "git"], Some(vec!["-y"])).unwrap_or_else(|error| {
         println!("Program failed with error: {}", error);
@@ -85,7 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let mut c = Command::new(format!("{}/.pyenv/bin/pyenv", env_vars.home_var).as_str())
-        .args(&["install", env_vars.python_version])
+        .args(&["install", env_vars.python_version.as_str()])
         .spawn()?;
     c.wait().unwrap_or_else(|error| {
         println!("pyenv install failed with error: {}", error);
