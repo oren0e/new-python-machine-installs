@@ -1,5 +1,5 @@
 use crate::environment::Environment;
-use std::process::Command;
+use std::process::{Command, exit};
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::error::Error;
@@ -43,7 +43,11 @@ pub fn git_clone(repo_address: &str, destination: &str) -> Result<(), Box<dyn Er
 }
 
 pub fn pip_install<'a>(mut packages: Vec<&'a str>, options: Option<Vec<&'a str>>) -> Result<(), Box<dyn Error>> {
-    let env_vars: Environment = Environment::new();
+    let env_vars: Environment = Environment::load().unwrap_or_else(|error| {
+        println!("Failed getting environment variable with error: {}", error);
+        exit(1)
+    });
+
     let mut cmd_line = vec!["-m", "pip", "install"];
     cmd_line.append(&mut options.unwrap_or(vec![""]));
     cmd_line.append(&mut packages);
@@ -55,7 +59,11 @@ pub fn pip_install<'a>(mut packages: Vec<&'a str>, options: Option<Vec<&'a str>>
 }
 
 pub fn pipx_install (mut packages: Vec<&str>) -> Result<(), Box<dyn Error>> {
-    let env_vars: Environment = Environment::new();
+    let env_vars: Environment = Environment::load().unwrap_or_else(|error| {
+        println!("Failed getting environment variable with error: {}", error);
+        exit(1)
+    });
+
     let mut c = Command::new(format!("{}/.local/bin/pipx", env_vars.home_var).as_str())
         .arg("install")
         .args(&mut packages)

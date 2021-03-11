@@ -1,42 +1,32 @@
-use std::process::{Command, Stdio, exit};
+use std::process::{Command, Stdio};
 use std::env;
+use std::error::Error;
 
-pub struct Environment<'a> {
+pub struct Environment {
     pub home_var: String,
     pub path_var: String,
-    pub python_version: &'a str,
+    pub python_version: String,
     pub ubuntu_distribution: String
 }
 
-impl Environment<'_> {
-    pub fn new() -> Environment<'static> {
-        let home_var = env::var("HOME").unwrap_or_else(|error| {
-                println!("Failed getting HOME environment variable with error: {}", error);
-                exit(1)
-            });
-        let path_var = env::var("PATH").unwrap_or_else(|error| {
-                println!("Failed getting PATH environment variable with error: {}", error);
-                exit(1)
-            });
-       let python_version = "3.9.0";
+impl Environment {
+    pub fn load() -> Result<Environment, Box<dyn Error>> {
+        let home_var = env::var("HOME")?;
+        let path_var = env::var("PATH")?;
+        let python_version = "3.9.0".to_owned();
+
         let c = Command::new("lsb_release")
             .arg("-cs")
             .stdout(Stdio::piped())
-            .output()
-            .unwrap_or_else(|error| {
-                println!("Failed running lsb_release with error: {}", error);
-                exit(1)
-            });
-        let mut ubuntu_distribution = String::from_utf8(c.stdout).unwrap_or_else(|error| {
-            println!("Failed reading from output with error: {}", error);
-            exit(1)
-        });
+            .output()?;
+
+        let mut ubuntu_distribution = String::from_utf8(c.stdout)?;
         ubuntu_distribution.pop();
-        Environment {
+        Ok(Environment {
             home_var,
             path_var,
             python_version,
             ubuntu_distribution
-        }
+        })
     }
 }

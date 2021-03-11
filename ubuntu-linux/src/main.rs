@@ -19,7 +19,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         exit(1)
     });
 
-    let env_vars: Environment = Environment::new();
+    let env_vars: Environment = Environment::load().unwrap_or_else(|error| {
+        println!("Failed getting environment variable with error: {}", error);
+        exit(1)
+    });
 
     apt_install(vec!["zsh", "curl", "wget", "git"], Some(vec!["-y"])).unwrap_or_else(|error| {
         println!("Program failed with error: {}", error);
