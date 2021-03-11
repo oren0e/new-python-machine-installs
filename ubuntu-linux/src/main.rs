@@ -88,7 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let mut c = Command::new(format!("{}/.pyenv/bin/pyenv", env_vars.home_var).as_str())
-        .args(&["install", env_vars.python_version])
+        .args(&["install", env_vars.python_version.as_str()])
         .spawn()?;
     c.wait().unwrap_or_else(|error| {
         println!("pyenv install failed with error: {}", error);
