@@ -1,14 +1,14 @@
 use crate::environment::Environment;
-use std::process::{Command, exit};
+use std::process::Command;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
-use anyhow::Result;
+use anyhow::{Result, Context};
 
 pub fn write_to_file(filename: &str, text: &str) -> Result<()>{
         let mut file = OpenOptions::new()
             .append(true)
             .create(true)
-            .open(filename)?;
+            .open(filename).with_context(|| format!("Failed to open file {}", filename))?;
         if let Err(e) = writeln!(file, "{}", text) {
             eprintln!("Couldn't write to file: {}", e);
         }
@@ -18,8 +18,8 @@ pub fn write_to_file(filename: &str, text: &str) -> Result<()>{
 pub fn apt_update() -> Result<()> {
     let mut c = Command::new("apt-get")
         .arg("update")
-        .spawn()?;
-    c.wait()?;
+        .spawn().with_context(|| format!("apt update failed"))?;
+    c.wait().with_context(|| format!("apt update failed"))?;
     Ok(())
 }
 
@@ -29,45 +29,37 @@ pub fn apt_install<'a>(mut packages: Vec<&'a str>, options: Option<Vec<&'a str>>
     cmd_line.append(&mut options.unwrap_or(vec![""]));
     let mut c = Command::new("apt-get")
         .args(cmd_line)
-        .spawn()?;
-    c.wait()?;
+        .spawn().with_context(|| format!("Install failed with error"))?;
+    c.wait().with_context(|| format!("Install failed with error"))?;
     Ok(())
 }
 
 pub fn git_clone(repo_address: &str, destination: &str) -> Result<()> {
     let mut c = Command::new("git")
         .args(&["clone", "--depth=1", repo_address, destination])
-        .spawn()?;
-    c.wait()?;
+        .spawn().with_context(|| format!("Git clone failed with error"))?;
+    c.wait().with_context(|| format!("Git clone failed with error"))?;
     Ok(())
 }
 
 pub fn pip_install<'a>(mut packages: Vec<&'a str>, options: Option<Vec<&'a str>>) -> Result<()> {
-    let env_vars: Environment = Environment::load().unwrap_or_else(|error| {
-        println!("Failed getting environment variable with error: {}", error);
-        exit(1)
-    });
-
+    let env_vars: Environment = Environment::load().with_context(|| format!("Failed getting environment variable"))?;
     let mut cmd_line = vec!["-m", "pip", "install"];
     cmd_line.append(&mut options.unwrap_or(vec![""]));
     cmd_line.append(&mut packages);
     let mut c = Command::new(format!("{}/.pyenv/versions/{}/bin/python3", env_vars.home_var, env_vars.python_version).as_str())
         .args(cmd_line)
-        .spawn()?;
-    c.wait()?;
+        .spawn().with_context(|| format!("pip install failed"))?;
+    c.wait().with_context(|| format!("pip install failed"))?;
     Ok(())
 }
 
 pub fn pipx_install (mut packages: Vec<&str>) -> Result<()> {
-    let env_vars: Environment = Environment::load().unwrap_or_else(|error| {
-        println!("Failed getting environment variable with error: {}", error);
-        exit(1)
-    });
-
+    let env_vars: Environment = Environment::load().with_context(|| format!("Failed getting environment variable"))?;
     let mut c = Command::new(format!("{}/.local/bin/pipx", env_vars.home_var).as_str())
         .arg("install")
         .args(&mut packages)
-        .spawn()?;
-    c.wait()?;
+        .spawn().with_context(|| format!("pipx install failed"))?;
+    c.wait().with_context(|| format!("pipx install failed"))?;
     Ok(())
 }
