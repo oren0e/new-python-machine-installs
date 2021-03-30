@@ -47,7 +47,7 @@ pub fn pip_install<'a>(mut packages: Vec<&'a str>, options: Option<Vec<&'a str>>
     let mut cmd_line = vec!["-m", "pip", "install"];
     cmd_line.append(&mut options.unwrap_or(vec![""]));
     cmd_line.append(&mut packages);
-    let mut c = Command::new(format!("{}/.pyenv/versions/{}/bin/python3", env_vars.home_var, env_vars.python_version).as_str())
+    let mut c = Command::new(&format!("{}/.pyenv/versions/{}/bin/python3", env_vars.home_var, env_vars.python_version))
         .args(cmd_line)
         .spawn().with_context(|| format!("pip install failed"))?;
     c.wait().with_context(|| format!("pip install failed"))?;
@@ -56,7 +56,7 @@ pub fn pip_install<'a>(mut packages: Vec<&'a str>, options: Option<Vec<&'a str>>
 
 pub fn pipx_install (mut packages: Vec<&str>) -> Result<()> {
     let env_vars: Environment = Environment::load().with_context(|| format!("Failed getting environment variable"))?;
-    let mut c = Command::new(format!("{}/.local/bin/pipx", env_vars.home_var).as_str())
+    let mut c = Command::new(&format!("{}/.local/bin/pipx", env_vars.home_var))
         .arg("install")
         .args(&mut packages)
         .spawn().with_context(|| format!("pipx install failed"))?;

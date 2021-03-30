@@ -20,9 +20,9 @@ fn main() -> Result<()> {
         .spawn().with_context(|| format!("Failed running wget"))?;
     c.wait().with_context(|| format!("Failed running wget"))?;
 
-    git_clone("https://github.com/junegunn/fzf.git", format!("{}/.fzf", env_vars.home_var).as_str())?;
+    git_clone("https://github.com/junegunn/fzf.git", &format!("{}/.fzf", env_vars.home_var))?;
 
-    let mut c = Command::new(format!("{}/.fzf/install", env_vars.home_var).as_str())
+    let mut c = Command::new(&format!("{}/.fzf/install", env_vars.home_var))
         .arg("--all")
         .spawn().with_context(|| format!("Failed to install fzf"))?;
     c.wait().with_context(|| format!("Failed running wget"))?;
@@ -34,20 +34,20 @@ fn main() -> Result<()> {
                      "libreadline-dev", "libsqlite3-dev", "llvm",
                      "libncurses5-dev", "xz-utils", "tk-dev",
                      "libxml2-dev", "libxmlsec1-dev", "libffi-dev", "liblzma-dev"], Some(vec!["-y", "--no-install-recommends"]))?;
-    git_clone("https://github.com/pyenv/pyenv.git", format!("{}/.pyenv", env_vars.home_var).as_str())?;
-    write_to_file(format!("{}/.bashrc", env_vars.home_var).as_str(), format!("export PYENV_ROOT=\"{}/.pyenv\"", env_vars.home_var).as_str())?;
-    write_to_file(format!("{}/.bashrc", env_vars.home_var).as_str(), format!("export PATH=\"{}/bin:{}\"",format!("{}/.pyenv", env_vars.home_var), env_vars.path_var).as_str())?;
-    write_to_file(format!("{}/.bashrc", env_vars.home_var).as_str(), "if command -v pyenv 1>/dev/null 2>&1; then\n  eval \"$(pyenv init -)\"\nfi")?;
+    git_clone("https://github.com/pyenv/pyenv.git", &format!("{}/.pyenv", env_vars.home_var))?;
+    write_to_file(&format!("{}/.bashrc", env_vars.home_var), &format!("export PYENV_ROOT=\"{}/.pyenv\"", env_vars.home_var))?;
+    write_to_file(&format!("{}/.bashrc", env_vars.home_var), &format!("export PATH=\"{}/bin:{}\"",format!("{}/.pyenv", env_vars.home_var), env_vars.path_var))?;
+    write_to_file(&format!("{}/.bashrc", env_vars.home_var), "if command -v pyenv 1>/dev/null 2>&1; then\n  eval \"$(pyenv init -)\"\nfi")?;
 
-    let mut c = Command::new(format!("{}/.pyenv/bin/pyenv", env_vars.home_var).as_str())
-        .args(&["install", env_vars.python_version.as_str()])
-        .spawn().with_context(|| format!("Failed to install python {} with pyenv", {env_vars.python_version.as_str()}))?;
-    c.wait().with_context(|| format!("Failed to install python {} with pyenv", {env_vars.python_version.as_str()}))?;
+    let mut c = Command::new(&format!("{}/.pyenv/bin/pyenv", env_vars.home_var))
+        .args(&["install", &env_vars.python_version])
+        .spawn().with_context(|| format!("Failed to install python {} with pyenv", {&env_vars.python_version}))?;
+    c.wait().with_context(|| format!("Failed to install python {} with pyenv", {&env_vars.python_version}))?;
 
     pip_install(vec!["pip"], Some(vec!["-U"]))?;
     pip_install(vec!["pipx"], Some(vec!["--user"]))?;
 
-    let mut c = Command::new(format!("{}/.pyenv/versions/{}/bin/python3", env_vars.home_var, env_vars.python_version).as_str())
+    let mut c = Command::new(&format!("{}/.pyenv/versions/{}/bin/python3", env_vars.home_var, env_vars.python_version))
         .args(&["-m", "pipx", "ensurepath"])
         .spawn().with_context(|| format!("Failed running pipx ensurepath"))?;
     c.wait().with_context(|| format!("Failed running pipx ensurepath"))?;
@@ -71,7 +71,7 @@ fn main() -> Result<()> {
     }
     apt_update()?;
     write_to_file("/etc/apt/sources.list.d/docker.list",
-                  format!("deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {:?} stable", env_vars.ubuntu_distribution).as_str())?;
+                  &format!("deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {:?} stable", env_vars.ubuntu_distribution))?;
     apt_update()?;
     apt_install(vec!["docker-ce", "docker-ce-cli", "containerd.io"], Some(vec!["-y"]))?;
     apt_install(vec!["vim"], Some(vec!["-y"]))?;
